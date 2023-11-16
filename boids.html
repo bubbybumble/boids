@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<title>Boids</title>
+
+<script type="text/javascript" src="./common/utils.js"></script>
+<script type="text/javascript" src="./common/initShaders.js"></script>
+<script type="text/javascript" src="./boids.js"></script>
+<script type="text/javascript" src="./common/mat_vec.js"></script>
+
+<!-- 
+	gl_Position.x = p.x / p.w;
+	gl_Position.y = p.y / p.w;
+	gl_Position.z = p.z / p.w;
+	gl_Position.w = 1.0;
+-->
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+	attribute vec4 vPosition;
+	attribute vec4 vNormal;
+	varying vec3 N, L, E;
+	uniform mat4 camera;
+	uniform mat4 projection;
+	uniform vec4 lightPos;
+	
+	void main() {
+			vec3 pos = (camera * vPosition).xyz;
+			vec3 light = lightPos.xyz;
+			L = normalize(light - pos);
+			E = normalize(-pos); // camera is at origin
+			N = normalize((camera * vNormal).xyz); // transform normal
+	
+			gl_Position = projection * camera * vPosition;
+	}
+	
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+	precision mediump float;
+
+	uniform vec4 ambientProduct;
+	uniform vec4 diffuseProduct;
+	uniform vec4 specularProduct;
+	uniform float shininess;
+	
+	varying vec3 N, L, E;
+	
+	void main() {
+		vec4 color;
+		vec3 H = normalize(L + E);
+		vec4 ambient = ambientProduct;
+		float Kd = max(dot(L, N), 0.0);
+		vec4 diffuse = Kd * diffuseProduct;
+		float Ks = pow(max(dot(N, H), 0.0), shininess);
+		vec4 specular = Ks * specularProduct;
+
+		if (dot(L, N) < 0.0) {
+				// Light source is not visible
+				specular = vec4(0.0, 0.0, 0.0, 1.0);
+		}
+
+		color = ambient + diffuse + specular;
+		color.a = 1.0;
+
+		gl_FragColor = color;
+	}
+	
+</script>
+
+
+</head>   
+
+<body>
+
+<canvas id="gl-canvas" width="1024" height="1024">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+<div class="slidecontainer">
+	<label for="myRange">Ambient Red</label><br>
+  <input type="range" min="0" max="100" value="100" class="slider" id="ambientR">
+</div>
+
+<div class="slidecontainer">
+	<label for="myRange">Ambient Green</label><br>
+  <input type="range" min="0" max="100" value="100" class="slider" id="ambientG">
+</div>
+
+<div class="slidecontainer">
+	<label for="myRange">Ambient Blue</label><br>
+  <input type="range" min="0" max="100" value="100" class="slider" id="ambientB">
+</div>00
+
+<div class="slidecontainer">
+	<label for="myRange">Specular Red</label><br>
+  <input type="range" min="0" max="100" value="80" class="slider" id="specularR">
+</div>
+
+<div class="slidecontainer">
+	<label for="myRange">Specular Green</label><br>
+  <input type="range" min="0" max="100" value="77" class="slider" id="specularG">
+</div>
+
+<div class="slidecontainer">
+	<label for="myRange">Specular Blue</label><br>
+  <input type="range" min="0" max="100" value="77" class="slider" id="specularB">
+</div>
+
+<div class="slidecontainer">
+	<label for="myRange">Diffuse Red</label><br>
+  <input type="range" min="0" max="100" value="50" class="slider" id="diffuseR">
+</div>
+
+<div class="slidecontainer">
+	<label for="myRange">Diffuse Green</label><br>
+  <input type="range" min="0" max="100" value="36" class="slider" id="diffuseG">
+</div>
+
+<div class="slidecontainer">
+	<label for="myRange">Diffuse Blue</label><br>
+  <input type="range" min="0" max="100" value="20" class="slider" id="diffuseB">
+</div>
+
+<div class="slidecontainer">
+	<label for="myRange">Shininess</label><br>
+  <input type="range" min="0" max="100" value="4" class="slider" id="shininess">
+</div>
+
+
+
+</body>
+</html>
