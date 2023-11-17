@@ -2,28 +2,39 @@ var gl;
 
 var delay = 100;
 var vBuffer;
-var cBuffer;
-var nBuffer;
+
 
 
 var program;
 var canvas; // accessing this globally
-var camPos = [-1., 6., -5.]
-var camLook = [0., 1.5, 0.]
-var camUp = [-1., 9., -5.]
+var camPos = [0., 0., -100.]
+var camLook = [0., 0., 0.]
+var camUp = [0., 1., -100.]
 
 var projectionLoc;
 var cameraLoc;
+var colorLoc;
+var modelLoc;
 
 var height = 1.;
 var width = 1.;
 var near = 1.;
 var far = 50.;
-var teapot_geom;
-var teapot_vertices;
-var teapot_normals;
 
+var boid_vertices;
 
+var boids = []
+
+function model(pos){
+	let m = [
+		[1.,0.,0.,pos[0]],
+		[0.,1.,0.,pos[1]],
+		[0.,0.,1.,pos[2]],
+		[0.,0.,0.,1.]
+	]
+	m.matrix = true;
+	return flatten(m);
+}
 
 function projection(t, n, f, r){
 	let m =[
@@ -64,11 +75,33 @@ function cameraCoordinates(pos, look, up){
 
 }
 
+class Boid {
+	constructor(position) {
+		this.position = position;
+		this.color = [Math.random(), Math.random(), Math.random(), 1.];
+	}
+
+	render() {
+		gl.uniformMatrix4fv(modelLoc, false, model(this.position));
+		gl.uniform4fv(colorLoc, this.color)
+		gl.drawArrays(gl.TRIANGLES, 0, boid_vertices.length);
+	}
+}
+
+
 window.onload = function init() {
   canvas = document.getElementById( "gl-canvas" );
-	teapot_geom = createTeapotGeometry(5);
-	teapot_vertices = teapot_geom[0];
-	teapot_normals = teapot_geom[1];
+	
+	for (i = 0; i < 100; i++){
+		boids.push(new Boid([Math.random() * 200. - 100., Math.random() * 200. - 100., Math.random() * 200. - 100., 1.]))
+	}
+
+	boid_vertices = [
+		[1.,0.,0.,1.],
+		[0.,1.,0.,1.],
+		[1.,1.,0.,1.]
+	]
+	
 	gl = initWebGL(canvas);
 
   if ( !gl ) { 
@@ -84,14 +117,17 @@ window.onload = function init() {
   gl.useProgram( program );
 
   vBuffer = gl.createBuffer();
-  cBuffer = gl.createBuffer();
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, flatten(teapot_vertices), gl.STATIC_DRAW);
+	gl.bufferData(gl.ARRAY_BUFFER, flatten(boid_vertices), gl.STATIC_DRAW);
 
 	projectionLoc = gl.getUniformLocation( program, "projection" );
 	cameraLoc = gl.getUniformLocation( program, "camera" );
+	colorLoc = gl.getUniformLocation( program, "color" );
+	modelLoc = gl.getUniformLocation( program, "model" );
 
+	gl.uniformMatrix4fv(cameraLoc, false, cameraCoordinates(camPos, camLook, camUp));
+	gl.uniformMatrix4fv(projectionLoc, false, projection(height/2., near, far, width/2.));
 
   render();
 }
@@ -106,19 +142,18 @@ function updateBuffers() {
 
 }
 
+
 function render() {
-
-
-	
 
 	updateBuffers();
 
 	gl.clear( gl.COLOR_BUFFER_BIT );
 
-	gl.uniformMatrix4fv(cameraLoc, false, cameraCoordinates(camPos, camLook, camUp));
-	gl.uniformMatrix4fv(projectionLoc, false, projection(height/2., near, far, width/2.));
+
+	for (i = 0; i < 100; i++){
+		boids[i].render();
+	}
 	
-	gl.drawArrays(gl.TRIANGLES, 0, teapot_vertices.length);
 
 	setTimeout(
 		function (){requestAnimFrame(render);}, delay
