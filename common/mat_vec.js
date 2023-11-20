@@ -224,6 +224,22 @@ function length(u) {
 }
 
 //----------------------------------------------------------------------------
+// 
+function displacement( u, v ) {
+	return [v[0] - u[0], v[1] - u[1], v[2] - u[2]]
+}
+
+// scalar distance-squared between two vectors
+function distanceSquared(u, v) {
+    return (v[0] - u[0]) ** 2 + (v[1] - u[1]) ** 2 + (v[2] - u[2]) ** 2;
+}
+
+// scalar distance between two vectors
+function distance(u, v) {
+    return Math.sqrt(distanceSquared(u,v));
+}
+
+//----------------------------------------------------------------------------
 // normalize a vector with or without the last component
 function normalize(u, excludeLastComponent) { 
     if (excludeLastComponent) {
