@@ -24,8 +24,9 @@ var far = 50.;
 var boid_vertices;
 
 var boids = []
-var boid_count = 100
+var boidCount = 50
 var time;
+var flockRadiusSquared = 1000
 
 function model(pos) {
 	let m = [
@@ -81,21 +82,91 @@ class Boid {
 	constructor(position, velocity) {
 		this.position = position;
 		this.velocity = velocity;
+		this.neighbors = []
 		this.color = [Math.random(), Math.random(), Math.random(), 1.];
 	}
 
-	update(avgPosition, avgVelocity, seperation) {
-		this.velocity[0] += (avgPosition[0] - this.position[0]) * 0.001
-		this.velocity[1] += (avgPosition[1] - this.position[1]) * 0.001
-		this.velocity[2] += (avgPosition[2] - this.position[2]) * 0.001
-
-		this.velocity[0] += (avgVelocity[0] - this.velocity[0]) * 0.001
-		this.velocity[1] += (avgVelocity[1] - this.velocity[1]) * 0.001
-		this.velocity[2] += (avgVelocity[2] - this.velocity[2]) * 0.001
+	update() {
+		this.findNeighbors(boids);
+		this.alignment();
+		this.cohesion();
+		this.seperation();
 
 		this.position[0] += this.velocity[0]
 		this.position[1] += this.velocity[1]
 		this.position[2] += this.velocity[2]
+	}
+
+	cohesion() {
+		let avgPosition = [0.0, 0.0, 0.0];
+
+		this.neighbors.forEach(element => {
+			avgPosition[0] += element.position[0]
+			avgPosition[1] += element.position[1]
+			avgPosition[2] += element.position[2]
+		});
+
+		avgPosition[0] /= this.neighbors.length
+		avgPosition[1] /= this.neighbors.length
+		avgPosition[2] /= this.neighbors.length
+
+		this.velocity[0] += (avgPosition[0] - this.position[0]) * 0.005
+		this.velocity[1] += (avgPosition[1] - this.position[1]) * 0.005
+		this.velocity[2] += (avgPosition[2] - this.position[2]) * 0.005
+	}
+
+	alignment() {
+		let avgVelocity = [0.0, 0.0, 0.0];
+
+		this.neighbors.forEach(element => {
+			distance(this.position, element.position) 
+			avgVelocity[0] += element.velocity[0];
+			avgVelocity[1] += element.velocity[1];
+			avgVelocity[2] += element.velocity[2];
+		});
+
+		avgVelocity[0] /= this.neighbors.length
+		avgVelocity[1] /= this.neighbors.length
+		avgVelocity[2] /= this.neighbors.length
+
+		this.velocity[0] += (avgVelocity[0] - this.velocity[0]) * 0.01
+		this.velocity[1] += (avgVelocity[1] - this.velocity[1]) * 0.01
+		this.velocity[2] += (avgVelocity[2] - this.velocity[2]) * 0.01
+
+	}
+
+	seperation() {
+		let seperation = [0.0, 0.0, 0.0]
+		this.neighbors.forEach(element => {
+			let dist = Math.max(1, distance(this.position, element.position));
+			console.log(dist);
+			if(dist < 0) {
+				let dx = this.position[0] - element.position[0]
+				let dy = this.position[1] - element.position[1]
+				let dz = this.position[2] - element.position[2]
+				
+				seperation[0] += dx / distance
+				seperation[1] += dy / distance
+				seperation[2] += dz / distance
+			}
+		});
+
+		seperation[0] /= this.neighbors.length
+		seperation[1] /= this.neighbors.length
+		seperation[2] /= this.neighbors.length
+
+		this.velocity[0] += seperation[0] * 0.01
+		this.velocity[1] += seperation[1] * 0.01
+		this.velocity[2] += seperation[2] * 0.01
+	}
+
+	findNeighbors(boids) {
+		this.neighbors = []
+		boids.forEach(element => {
+			if (distanceSquared(this.position, element.position) < flockRadiusSquared) {
+				this.neighbors.push(element)
+			}
+		});
 	}
 
 	render() {
@@ -109,7 +180,7 @@ class Boid {
 window.onload = function init() {
 	canvas = document.getElementById("gl-canvas");
 
-	for (i = 0; i < boid_count; i++) {
+	for (i = 0; i < boidCount; i++) {
 		rand_pos = [Math.random() * 200. - 100., Math.random() * 200. - 100., Math.random() * 200. - 100., 1.]
 		rand_vel = [Math.random() - 0.5, Math.random() - .5, Math.random() - 0.5, 1.]
 		boids.push(new Boid(rand_pos, rand_vel));
@@ -168,37 +239,10 @@ function render() {
 
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
-	avgPosition = [0.0, 0.0, 0.0]   
-	avgVelocity = [0.0, 0.0, 0.0] 
-	seperation = [0.0, 0.0, 0.0]
-
-	for (i = 0; i < boid_count; i++) {
-		// Cohesion (Move towards avg position of neighbors)
-		avgPosition[0] += boids[i].position[0];
-		avgPosition[1] += boids[i].position[1];
-		avgPosition[2] += boids[i].position[2];
-
-		// Alignment (Make neighbors move in same direction)
-		avgVelocity[0] += boids[i].velocity[0];
-		avgVelocity[1] += boids[i].velocity[1];
-		avgVelocity[2] += boids[i].velocity[2];
-
-		//TODO: Implement Separation
+	for (i = 0; i < boidCount; i++) {
+		boids[i].update();
+		boids[i].render();
 	}
-
-	avgPosition[0] /= boid_count
-	avgPosition[1] /= boid_count
-	avgPosition[2] /= boid_count
-
-	avgVelocity[0] /= boid_count
-	avgVelocity[1] /= boid_count
-	avgVelocity[2] /= boid_count
-
-	boids.forEach((boid) => {
-		boid.update(avgPosition, avgVelocity);
-		boid.render();
-	})
-
 
 	setTimeout(
 		function () { requestAnimFrame(render); }, delay
