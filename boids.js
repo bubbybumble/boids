@@ -24,7 +24,7 @@ var far = 50.;
 var boid_vertices;
 
 var boids = []
-var boidCount = 50
+var boidCount = 100
 var time;
 var flockRadiusSquared = 1000
 
@@ -110,9 +110,9 @@ class Boid {
 		avgPosition[1] /= this.neighbors.length
 		avgPosition[2] /= this.neighbors.length
 
-		this.velocity[0] += (avgPosition[0] - this.position[0]) * 0.005
-		this.velocity[1] += (avgPosition[1] - this.position[1]) * 0.005
-		this.velocity[2] += (avgPosition[2] - this.position[2]) * 0.005
+		this.velocity[0] += (avgPosition[0] - this.position[0]) * 0.001
+		this.velocity[1] += (avgPosition[1] - this.position[1]) * 0.001
+		this.velocity[2] += (avgPosition[2] - this.position[2]) * 0.001
 	}
 
 	alignment() {
@@ -129,9 +129,9 @@ class Boid {
 		avgVelocity[1] /= this.neighbors.length
 		avgVelocity[2] /= this.neighbors.length
 
-		this.velocity[0] += (avgVelocity[0] - this.velocity[0]) * 0.01
-		this.velocity[1] += (avgVelocity[1] - this.velocity[1]) * 0.01
-		this.velocity[2] += (avgVelocity[2] - this.velocity[2]) * 0.01
+		this.velocity[0] += (avgVelocity[0] - this.velocity[0]) * 0.001
+		this.velocity[1] += (avgVelocity[1] - this.velocity[1]) * 0.001
+		this.velocity[2] += (avgVelocity[2] - this.velocity[2]) * 0.001
 
 	}
 
@@ -139,15 +139,14 @@ class Boid {
 		let seperation = [0.0, 0.0, 0.0]
 		this.neighbors.forEach(element => {
 			let dist = Math.max(1, distance(this.position, element.position));
-			console.log(dist);
-			if(dist < 0) {
+			if(dist < 5) {
 				let dx = this.position[0] - element.position[0]
 				let dy = this.position[1] - element.position[1]
 				let dz = this.position[2] - element.position[2]
 				
-				seperation[0] += dx / distance
-				seperation[1] += dy / distance
-				seperation[2] += dz / distance
+				seperation[0] += dx / dist
+				seperation[1] += dy / dist
+				seperation[2] += dz / dist
 			}
 		});
 
@@ -155,15 +154,15 @@ class Boid {
 		seperation[1] /= this.neighbors.length
 		seperation[2] /= this.neighbors.length
 
-		this.velocity[0] += seperation[0] * 0.01
-		this.velocity[1] += seperation[1] * 0.01
-		this.velocity[2] += seperation[2] * 0.01
+		this.velocity[0] += seperation[0] * 0.05
+		this.velocity[1] += seperation[1] * 0.05
+		this.velocity[2] += seperation[2] * 0.05
 	}
 
 	findNeighbors(boids) {
 		this.neighbors = []
 		boids.forEach(element => {
-			if (distanceSquared(this.position, element.position) < flockRadiusSquared) {
+			if (element != this && distanceSquared(this.position, element.position) < flockRadiusSquared) {
 				this.neighbors.push(element)
 			}
 		});
