@@ -36,7 +36,7 @@ function vec3h(x, y, z) {
 	return [x, y, z, 1.];
 }
 
-function vec3h(x, y, z, w) {
+function vec4(x, y, z, w) {
 	return [x, y, z, w];
 }
 
@@ -262,3 +262,19 @@ function normalize(u, excludeLastComponent) {
     return u;
 }
 //----------------------------------------------------------------------------
+// Transform Matrices
+function translate3D(x, y, z) {
+	let matrix = identity4();
+	matrix[0][3] = x;
+	matrix[1][3] = y;
+	matrix[2][3] = z;
+	return matrix;
+}
+
+function scale(x, y, z) {
+	let matrix = identity4();
+	matrix[0][0] = x;
+	matrix[1][1] = y;
+	matrix[2][2] = z;
+	return matrix;
+}

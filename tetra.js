@@ -5,8 +5,8 @@ class tetrahedron {
 		this.vc = vec4(-0.816497, -0.471405, 0.333333, 1);
 		this.vd = vec4(0.816497, -0.471405, 0.333333,1);
 		// scale up the tetrahedron, form the matrix
-		let M_scale = mult(translate3D(0., 0., -1.), 
-						mult(scale(4., 4., 4.), translate3D(0., 0., 1.)))
+		let M_scale = matMult(translate3D(0., 0., -1.), 
+						matMult(scale(4., 4., 4.), translate3D(0., 0., 1.)))
 		this.va = matVecMult(M_scale, this.va);
 		this.vb = matVecMult(M_scale, this.vb);
 		this.vc = matVecMult(M_scale, this.vc);

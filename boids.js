@@ -139,7 +139,7 @@ class Boid {
 		let seperation = [0.0, 0.0, 0.0]
 		this.neighbors.forEach(element => {
 			let dist = Math.max(1, distance(this.position, element.position));
-			if(dist < 5) {
+			if(dist < 4) {
 				let dx = this.position[0] - element.position[0]
 				let dy = this.position[1] - element.position[1]
 				let dz = this.position[2] - element.position[2]
