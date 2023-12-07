@@ -26,7 +26,11 @@ var boid_vertices;
 var boids = []
 var boidCount = 100;
 var time;
-var flockRadiusSquared = 1000
+
+var flockRadiusSquared = 500
+var cohesionFactor = 0.001
+var alignmentFactor = 0.003
+var separationFactor = 0.05
 
 function model(pos) {
 	let m = [
@@ -113,9 +117,9 @@ class Boid {
 		avgPosition[1] /= this.neighbors.length
 		avgPosition[2] /= this.neighbors.length
 
-		this.velocity[0] += (avgPosition[0] - this.position[0]) * 0.001
-		this.velocity[1] += (avgPosition[1] - this.position[1]) * 0.001
-		this.velocity[2] += (avgPosition[2] - this.position[2]) * 0.001
+		this.velocity[0] += (avgPosition[0] - this.position[0]) * cohesionFactor
+		this.velocity[1] += (avgPosition[1] - this.position[1]) * cohesionFactor
+		this.velocity[2] += (avgPosition[2] - this.position[2]) * cohesionFactor
 	}
 
 	alignment() {
@@ -132,9 +136,9 @@ class Boid {
 		avgVelocity[1] /= this.neighbors.length
 		avgVelocity[2] /= this.neighbors.length
 
-		this.velocity[0] += (avgVelocity[0] - this.velocity[0]) * 0.001
-		this.velocity[1] += (avgVelocity[1] - this.velocity[1]) * 0.001
-		this.velocity[2] += (avgVelocity[2] - this.velocity[2]) * 0.001
+		this.velocity[0] += (avgVelocity[0] - this.velocity[0]) * alignmentFactor
+		this.velocity[1] += (avgVelocity[1] - this.velocity[1]) * alignmentFactor
+		this.velocity[2] += (avgVelocity[2] - this.velocity[2]) * alignmentFactor
 
 	}
 
@@ -142,7 +146,7 @@ class Boid {
 		let seperation = [0.0, 0.0, 0.0]
 		this.neighbors.forEach(element => {
 			let dist = Math.max(1, distance(this.position, element.position));
-			if(dist < 4) {
+			if(dist < 10) {
 				let dx = this.position[0] - element.position[0]
 				let dy = this.position[1] - element.position[1]
 				let dz = this.position[2] - element.position[2]
@@ -157,9 +161,9 @@ class Boid {
 		seperation[1] /= this.neighbors.length
 		seperation[2] /= this.neighbors.length
 
-		this.velocity[0] += seperation[0] * 0.05
-		this.velocity[1] += seperation[1] * 0.05
-		this.velocity[2] += seperation[2] * 0.05
+		this.velocity[0] += seperation[0] * separationFactor
+		this.velocity[1] += seperation[1] * separationFactor
+		this.velocity[2] += seperation[2] * separationFactor
 	}
 
 	findNeighbors(boids) {
