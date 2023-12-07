@@ -24,7 +24,7 @@ var far = 50.;
 var boid_vertices;
 
 var boids = []
-var boidCount = 100
+var boidCount = 100;
 var time;
 var flockRadiusSquared = 1000
 
@@ -88,13 +88,16 @@ class Boid {
 
 	update() {
 		this.findNeighbors(boids);
-		this.alignment();
-		this.cohesion();
-		this.seperation();
+		if (this.neighbors.length > 0) {
+			this.alignment();
+			this.cohesion();
+			this.seperation();
+		}
 
 		this.position[0] += this.velocity[0]
 		this.position[1] += this.velocity[1]
 		this.position[2] += this.velocity[2]
+		this.stayInBox();
 	}
 
 	cohesion() {
@@ -168,6 +171,12 @@ class Boid {
 		});
 	}
 
+	stayInBox() {
+		if (Math.abs(this.position[0]) > 100) { this.velocity[0] *= -0.9;}
+		if (Math.abs(this.position[1]) > 100) { this.velocity[1] *= -0.9}
+		if (this.position[2] < -50 || this.position[2] > 0) { this.velocity[2] *= -0.9}
+	}
+
 	render() {
 		gl.uniformMatrix4fv(modelLoc, false, model(this.position));
 		gl.uniform4fv(colorLoc, this.color)
@@ -180,9 +189,10 @@ window.onload = function init() {
 	canvas = document.getElementById("gl-canvas");
 
 	for (i = 0; i < boidCount; i++) {
-		rand_pos = [Math.random() * 200. - 100., Math.random() * 200. - 100., Math.random() * 200. - 100., 1.]
-		rand_vel = [Math.random() - 0.5, Math.random() - .5, Math.random() - 0.5, 1.]
+		rand_pos = [Math.random() * 200. - 100., Math.random() * 200. - 100., Math.random() * 50. - 25., -1.]
+		rand_vel = [Math.random() - 0.5, Math.random() - .5, Math.random() - 0.5, Math.random()-1]
 		boids.push(new Boid(rand_pos, rand_vel));
+		//boids.push(new Boid([50, 0, -50], rand_vel));
 	}
 
 	boid_vertices = [
@@ -241,6 +251,7 @@ function render() {
 	for (i = 0; i < boidCount; i++) {
 		boids[i].update();
 		boids[i].render();
+		console.log(boids[i].position)
 	}
 
 	setTimeout(
