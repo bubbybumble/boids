@@ -26,11 +26,13 @@ var boid_vertices;
 var boids = []
 var boidCount = 100;
 var time;
+var maxBoidVelocity = 1
 
-var flockRadiusSquared = 500
+var flockRadiusSquared = 400
+var separationRadius = 100
 var cohesionFactor = 0.001
 var alignmentFactor = 0.003
-var separationFactor = 0.05
+var separationFactor = 0.01
 
 function model(pos) {
 	let m = [
@@ -87,22 +89,28 @@ class Boid {
 	constructor(position, velocity) {
 		this.position = position;
 		this.velocity = velocity;
+		this.nextVelocity = velocity; // Needed to allow separated calculation of all boid forces before applying
 		this.neighbors = []
 		this.color = [Math.random(), Math.random(), Math.random(), 1.];
 	}
 
 	update() {
+		
+		this.velocity = length(this.nextVelocity) > maxBoidVelocity? normalize(this.nextVelocity):this.nextVelocity;
+		this.position[0] += this.velocity[0]
+		this.position[1] += this.velocity[1]
+		this.position[2] += this.velocity[2]
+		this.stayInBox();
+	}
+
+	getBoidForces () {
 		this.findNeighbors(boids);
+		this.nextVelocity = this.velocity
 		if (this.neighbors.length > 0) {
 			this.alignment();
 			this.cohesion();
 			this.seperation();
 		}
-
-		this.position[0] += this.velocity[0]
-		this.position[1] += this.velocity[1]
-		this.position[2] += this.velocity[2]
-		this.stayInBox();
 	}
 
 	cohesion() {
@@ -118,9 +126,9 @@ class Boid {
 		avgPosition[1] /= this.neighbors.length
 		avgPosition[2] /= this.neighbors.length
 
-		this.velocity[0] += (avgPosition[0] - this.position[0]) * cohesionFactor
-		this.velocity[1] += (avgPosition[1] - this.position[1]) * cohesionFactor
-		this.velocity[2] += (avgPosition[2] - this.position[2]) * cohesionFactor
+		this.nextVelocity[0] += (avgPosition[0] - this.position[0]) * cohesionFactor
+		this.nextVelocity[1] += (avgPosition[1] - this.position[1]) * cohesionFactor
+		this.nextVelocity[2] += (avgPosition[2] - this.position[2]) * cohesionFactor
 	}
 
 	alignment() {
@@ -137,17 +145,17 @@ class Boid {
 		avgVelocity[1] /= this.neighbors.length
 		avgVelocity[2] /= this.neighbors.length
 
-		this.velocity[0] += (avgVelocity[0] - this.velocity[0]) * alignmentFactor
-		this.velocity[1] += (avgVelocity[1] - this.velocity[1]) * alignmentFactor
-		this.velocity[2] += (avgVelocity[2] - this.velocity[2]) * alignmentFactor
+		this.nextVelocity[0] += (avgVelocity[0] - this.velocity[0]) * alignmentFactor
+		this.nextVelocity[1] += (avgVelocity[1] - this.velocity[1]) * alignmentFactor
+		this.nextVelocity[2] += (avgVelocity[2] - this.velocity[2]) * alignmentFactor
 
 	}
 
 	seperation() {
 		let seperation = [0.0, 0.0, 0.0]
 		this.neighbors.forEach(element => {
-			let dist = Math.max(1, distance(this.position, element.position));
-			if(dist < 10) {
+			let dist = Math.max(1, distanceSquared(this.position, element.position));
+			if(dist < separationRadius) {
 				let dx = this.position[0] - element.position[0]
 				let dy = this.position[1] - element.position[1]
 				let dz = this.position[2] - element.position[2]
@@ -162,9 +170,9 @@ class Boid {
 		seperation[1] /= this.neighbors.length
 		seperation[2] /= this.neighbors.length
 
-		this.velocity[0] += seperation[0] * separationFactor
-		this.velocity[1] += seperation[1] * separationFactor
-		this.velocity[2] += seperation[2] * separationFactor
+		this.nextVelocity[0] += seperation[0] * separationFactor
+		this.nextVelocity[1] += seperation[1] * separationFactor
+		this.nextVelocity[2] += seperation[2] * separationFactor
 	}
 
 	findNeighbors(boids) {
@@ -172,6 +180,9 @@ class Boid {
 		boids.forEach(element => {
 			if (element != this && distanceSquared(this.position, element.position) < flockRadiusSquared) {
 				this.neighbors.push(element)
+				this.color[0] = (this.color[0] + element.color[0]) / 2
+				this.color[1] = (this.color[1] + element.color[1]) / 2
+				this.color[2] = (this.color[2] + element.color[2]) / 2
 			}
 		});
 	}
@@ -179,7 +190,7 @@ class Boid {
 	stayInBox() {
 		if (Math.abs(this.position[0]) > 100) { this.velocity[0] *= -0.9;}
 		if (Math.abs(this.position[1]) > 100) { this.velocity[1] *= -0.9}
-		if (this.position[2] < -50 || this.position[2] > 0) { this.velocity[2] *= -0.9}
+		if (this.position[2] < -50 || this.position[2] > -20) { this.velocity[2] *= -0.9}
 	}
 
 	render() {
@@ -253,10 +264,11 @@ function render() {
 
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
+	boids.forEach((boid) => {boid.getBoidForces()})
 	for (i = 0; i < boidCount; i++) {
 		boids[i].update();
 		boids[i].render();
-		console.log(boids[i].position)
+		console.log(length(boids[i].velocity))
 	}
 
 	setTimeout(
