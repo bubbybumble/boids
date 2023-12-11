@@ -179,6 +179,9 @@ class Boid {
 		boids.forEach(element => {
 			if (element != this && distanceSquared(this.position, element.position) < flockRadiusSquared) {
 				this.neighbors.push(element)
+				this.color[0] = (this.color[0] + element.color[0]) / 2
+				this.color[1] = (this.color[1] + element.color[1]) / 2
+				this.color[2] = (this.color[2] + element.color[2]) / 2
 			}
 		});
 	}
