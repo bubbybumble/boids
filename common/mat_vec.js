@@ -241,7 +241,7 @@ function distance(u, v) {
 
 //----------------------------------------------------------------------------
 // normalize a vector with or without the last component
-function normalize(u, excludeLastComponent) { 
+function normalize(u, excludeLastComponent = false) { 
     if (excludeLastComponent) {
         var last = u.pop();
     }
