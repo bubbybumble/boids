@@ -83,6 +83,7 @@ function cameraCoordinates(pos, look, up) {
 }
 
 class Boid {
+
 	constructor(position, velocity) {
 		this.position = position;
 		this.velocity = velocity;
@@ -199,11 +200,11 @@ window.onload = function init() {
 		//boids.push(new Boid([50, 0, -50], rand_vel));
 	}
 
-	boid_vertices = [
-		[1., 0., 0., 1.],
-		[0., 1., 0., 1.],
-		[1., 1., 0., 1.]
-	]
+	const tetra = new tetrahedron();
+	tetra.getVerticesNormals();
+
+
+	boid_vertices = tetra.vertices;
 
 	gl = initWebGL(canvas);
 

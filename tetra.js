@@ -1,7 +1,7 @@
 class tetrahedron {
 	constructor() {
-    	this.va =  vec4(0., 0., -1., 1);
-    	this.vb = vec4(0.0, 0.942809, 0.333333, 1);
+		this.va =  vec4(0., 0., -1., 1);
+		this.vb = vec4(0.0, 0.942809, 0.333333, 1);
 		this.vc = vec4(-0.816497, -0.471405, 0.333333, 1);
 		this.vd = vec4(0.816497, -0.471405, 0.333333,1);
 		// scale up the tetrahedron, form the matrix
@@ -13,7 +13,7 @@ class tetrahedron {
 		this.vd = matVecMult(M_scale, this.vd);
 		
 		this.vertices = [];
-    	this.normals  =  [];
+    this.normals  =  [];
 	}
 
 	getVerticesNormals() {
@@ -24,13 +24,13 @@ class tetrahedron {
 	}
 
 	triangle(a, b, c) {
-    	this.normals.push(vec3(a));
-    	this.normals.push(vec3(b));
-    	this.normals.push(vec3(c));
-     
-    	this.vertices.push(a);
-    	this.vertices.push(b);      
-    	this.vertices.push(c);
+		this.normals.push(vec3(a));
+		this.normals.push(vec3(b));
+		this.normals.push(vec3(c));
+		
+		this.vertices.push(a);
+		this.vertices.push(b);      
+		this.vertices.push(c);
 	}
 	getNumVertices() {
 		return this.vertices.length;
